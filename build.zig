@@ -20,11 +20,17 @@ pub fn build(b: *std.Build) void {
         },
     });
 
-    buildExe(b, target, optimize, engine_module, nterm_module);
+    const install_NNs = b.addInstallDirectory(.{
+        .source_dir = .{ .path = "NNs" },
+        .install_dir = .bin,
+        .install_subdir = "NNs",
+    });
 
-    buildTests(b, engine_module);
+    buildExe(b, target, optimize, engine_module, nterm_module, install_NNs);
 
-    buildBench(b, target, engine_module);
+    buildTests(b, engine_module, install_NNs);
+
+    buildBench(b, target, engine_module, install_NNs);
 }
 
 fn buildExe(
@@ -33,6 +39,7 @@ fn buildExe(
     optimize: builtin.OptimizeMode,
     engine_module: *Build.Module,
     nterm_module: *Build.Module,
+    install_NNs: *Build.Step.InstallDir,
 ) void {
     const train_exe = b.addExecutable(.{
         .name = "Budget Tetris Bot Training",
@@ -43,14 +50,6 @@ fn buildExe(
     train_exe.root_module.addImport("engine", engine_module);
     train_exe.root_module.addImport("nterm", nterm_module);
 
-    // Add NNs files
-    const install_NNs = b.addInstallDirectory(.{
-        .source_dir = .{ .path = "./NNs" },
-        .install_dir = .bin,
-        .install_subdir = "NNs",
-    });
-    train_exe.step.dependOn(&install_NNs.step);
-
     b.installArtifact(train_exe);
 
     // Add run step
@@ -60,10 +59,11 @@ fn buildExe(
         run_cmd.addArgs(args);
     }
     const run_step = b.step("run", "Run the app");
+    train_exe.step.dependOn(&install_NNs.step);
     run_step.dependOn(&run_cmd.step);
 }
 
-fn buildTests(b: *std.Build, engine_module: *Build.Module) void {
+fn buildTests(b: *std.Build, engine_module: *Build.Module, install_NNs: *Build.Step.InstallDir) void {
     const lib_tests = b.addTest(.{
         .root_source_file = .{ .path = "src/root.zig" },
     });
@@ -71,10 +71,11 @@ fn buildTests(b: *std.Build, engine_module: *Build.Module) void {
     const run_lib_tests = b.addRunArtifact(lib_tests);
 
     const test_step = b.step("test", "Run library tests");
+    test_step.dependOn(&install_NNs.step);
     test_step.dependOn(&run_lib_tests.step);
 }
 
-fn buildBench(b: *std.Build, target: Build.ResolvedTarget, engine_module: *Build.Module) void {
+fn buildBench(b: *std.Build, target: Build.ResolvedTarget, engine_module: *Build.Module, install_NNs: *Build.Step.InstallDir) void {
     const bench_exe = b.addExecutable(.{
         .name = "Budget Tetris Bot Benchmarks",
         .root_source_file = .{ .path = "src/bench.zig" },
@@ -91,5 +92,6 @@ fn buildBench(b: *std.Build, target: Build.ResolvedTarget, engine_module: *Build
         bench_cmd.addArgs(args);
     }
     const bench_step = b.step("bench", "Run benchmarks");
+    bench_step.dependOn(&install_NNs.step);
     bench_step.dependOn(&bench_cmd.step);
 }
