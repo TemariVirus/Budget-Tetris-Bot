@@ -6,7 +6,7 @@ const expect = std.testing.expect;
 const engine = @import("engine");
 const kicks = engine.kicks;
 const BoardMask = engine.bit_masks.BoardMask;
-const GameState = engine.GameState(SevenBag, kicks.srsPlus);
+const GameState = engine.GameState(SevenBag);
 const Position = engine.pieces.Position;
 const Piece = engine.pieces.Piece;
 const PieceKind = engine.pieces.PieceKind;
@@ -302,7 +302,7 @@ fn isPcPossible(rows: []const u16) bool {
 test "4-line PC" {
     const allocator = std.testing.allocator;
 
-    var gamestate = GameState.init(engine.bags.SevenBag.init(0));
+    var gamestate = GameState.init(SevenBag.init(0), kicks.srsPlus);
 
     const solution = try findPc(allocator, gamestate, 0, 11);
     defer allocator.free(solution);

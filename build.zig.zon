@@ -1,11 +1,10 @@
 .{
     .name = "budget-tetris-bot",
     .version = "0.0.1",
-    //.minimum_zig_version = "0.11.0",
     .dependencies = .{
         .engine = .{
-            .url = "https://github.com/TemariVirus/Budget-Tetris-Engine/archive/a0caf663386d72a50bdc2b3aa49814d6ef2aa0f9.tar.gz",
-            .hash = "12201a83b608c6cbd4736627ba867d32523d66292d4493fdfd8e5eadfbfb555d721d",
+            .url = "https://github.com/TemariVirus/Budget-Tetris-Engine/archive/9afc1a5cf9e50db3b9c23568caeeba57052a980c.tar.gz",
+            .hash = "1220289220f9df5d7d625f18899505a0fe78e6f80d1f681f31e0bf03c6b8a6cfcc5b",
         },
     },
     .paths = .{

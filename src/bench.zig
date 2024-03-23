@@ -3,28 +3,14 @@ const time = std.time;
 
 const engine = @import("engine");
 const SevenBag = engine.bags.SevenBag;
-const GameState = engine.GameState(SevenBag, engine.kicks.srsPlus);
+const GameState = engine.GameState(SevenBag);
 
 const root = @import("root.zig");
 const NN = root.neat.NN;
 const pc = root.pc;
 
 pub fn main() !void {
-    std.debug.print(
-        \\
-        \\------------------
-        \\   PC Benchmark
-        \\------------------
-        \\
-    , .{});
     try pcBenchmark();
-    std.debug.print(
-        \\
-        \\------------------
-        \\   NN Benchmark
-        \\------------------
-        \\
-    , .{});
     try nnBenchmark();
 }
 
@@ -35,6 +21,14 @@ pub fn main() !void {
 pub fn pcBenchmark() !void {
     const RUN_COUNT = 50;
 
+    std.debug.print(
+        \\
+        \\------------------
+        \\   PC Benchmark
+        \\------------------
+        \\
+    , .{});
+
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
@@ -43,7 +37,7 @@ pub fn pcBenchmark() !void {
     var max_time: u64 = 0;
 
     for (0..RUN_COUNT) |seed| {
-        const gamestate = GameState.init(SevenBag.init(seed));
+        const gamestate = GameState.init(SevenBag.init(seed), engine.kicks.srsPlus);
 
         const start = time.nanoTimestamp();
         const solution = try pc.findPc(allocator, gamestate, 4, 11);
@@ -63,6 +57,14 @@ pub fn pcBenchmark() !void {
 // Current iters/s: 19754158
 pub fn nnBenchmark() !void {
     const RUN_COUNT = 500_000_000;
+
+    std.debug.print(
+        \\
+        \\------------------
+        \\   NN Benchmark
+        \\------------------
+        \\
+    , .{});
 
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();

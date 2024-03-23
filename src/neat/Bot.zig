@@ -5,7 +5,7 @@ const engine = @import("engine");
 const AttackTable = engine.attack.AttackTable;
 const BoardMask = engine.bit_masks.BoardMask;
 // TODO: Replace with `anytype`
-const GameState = engine.GameState(engine.bags.SevenBag, engine.kicks.srsPlus);
+const GameState = engine.GameState(engine.bags.SevenBag);
 const Facing = engine.pieces.Facing;
 const Rotation = engine.kicks.Rotation;
 

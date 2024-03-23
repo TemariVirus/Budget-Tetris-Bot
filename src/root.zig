@@ -9,6 +9,7 @@ const engine = @import("engine");
 const BoardMask = engine.bit_masks.BoardMask;
 const Facing = engine.pieces.Facing;
 const Piece = engine.pieces.Piece;
+const PieceKind = engine.pieces.PieceKind;
 const Position = engine.pieces.Position;
 
 pub const Placement = struct {
@@ -20,23 +21,23 @@ pub const PiecePosition = packed struct {
     const x_offset = 2; // Minimum x for position is -2
 
     y: i8,
-    _x: u4,
+    x: u4,
     facing: Facing,
 
     pub fn pack(piece: Piece, pos: Position) PiecePosition {
         return PiecePosition{
             .y = pos.y,
-            ._x = @as(u4, @intCast(pos.x + x_offset)),
+            .x = @as(u4, @intCast(pos.x + x_offset)),
             .facing = piece.facing,
         };
     }
 
     pub fn getX(self: PiecePosition) i8 {
-        return @as(i8, self._x) - x_offset;
+        return @as(i8, self.x) - x_offset;
     }
 
     pub fn setX(self: *PiecePosition, x: i8) void {
-        self._x = @as(u4, @intCast(x + x_offset));
+        self.x = @as(u4, @intCast(x + x_offset));
     }
 };
 
@@ -69,6 +70,19 @@ pub fn PiecePosSet(comptime shape: [3]usize) type {
             assert(facing < shape[2]);
 
             return x + y * shape[0] + facing * shape[0] * shape[1];
+        }
+
+        /// Converts an index into the backing bit set to it's coressponding piece and
+        /// position.
+        pub fn reverseIndex(piece: PieceKind, index: usize) Placement {
+            const x = index % shape[0];
+            const y = (index / shape[0]) % shape[1];
+            const facing = index / (shape[0] * shape[1]);
+
+            return .{
+                .piece = .{ .kind = piece, .facing = @enumFromInt(facing) },
+                .pos = .{ .x = @intCast(x), .y = @intCast(y) },
+            };
         }
 
         /// Returns `true` if the set contains the given piece-position combination;
