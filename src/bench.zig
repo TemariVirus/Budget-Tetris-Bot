@@ -16,8 +16,8 @@ pub fn main() !void {
 
 // There are 241,315,200 possible 4-line PCs from an empty board with a 7-bag
 // randomiser, so creating a table of all of them is actually feasible.
-// Current mean: 2.489s
-// Current max: 15.457s
+// Mean: 2.089s
+// Max: 15.617s
 pub fn pcBenchmark() !void {
     const RUN_COUNT = 50;
 
@@ -53,8 +53,8 @@ pub fn pcBenchmark() !void {
     std.debug.print("Max: {}\n", .{std.fmt.fmtDuration(max_time)});
 }
 
-// Current mean: 50ns
-// Current iters/s: 19754158
+// Mean: 46ns
+// Iters/s: 21295733
 pub fn nnBenchmark() !void {
     const RUN_COUNT = 500_000_000;
 
