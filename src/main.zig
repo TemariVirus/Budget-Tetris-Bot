@@ -17,8 +17,8 @@ const neat = root.neat;
 const pc = root.pc;
 const Placement = root.Placement;
 
-const FRAMERATE = 4;
-const FPS_TIMING_WINDOW = 60;
+const FRAMERATE = 6;
+const FPS_TIMING_WINDOW = 12;
 
 // pub fn main() !void {
 //     var gpa = std.heap.GeneralPurposeAllocator(.{}){};

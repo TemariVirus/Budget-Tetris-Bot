@@ -53,13 +53,14 @@ pub fn findPc(allocator: Allocator, game: GameState, min_height: u8, comptime ma
 pub fn PC(comptime max_pieces: usize) type {
     return struct {
         const MAX_HEIGHT: usize = @min(BoardMask.HEIGHT, max_pieces * 4 / BoardMask.WIDTH);
+        const MAX_PIECE_Y = @min(40, MAX_HEIGHT + 4);
 
         const PiecePosSet = root.PiecePosSet(
-            .{ BoardMask.WIDTH, MAX_HEIGHT + 2, 4 },
+            .{ BoardMask.WIDTH, MAX_PIECE_Y, 4 },
         );
         const PlacementStack = std.BoundedArray(
             PiecePosition,
-            BoardMask.WIDTH * (MAX_HEIGHT + 2) * 4,
+            BoardMask.WIDTH * @as(usize, MAX_PIECE_Y) * 4,
         );
 
         const SearchNode = struct {
@@ -288,27 +289,28 @@ pub fn PC(comptime max_pieces: usize) type {
         fn isPcPossible(rows: []const u16) bool {
             var walls = ~BoardMask.EMPTY_ROW;
             for (rows) |row| {
-                walls &= row;
+                walls &= row | (row << 1);
             }
-            walls >>= 1; // Remove padding
-            walls &= walls ^ (walls << 1); // Reduce consecutive walls to 1 wide walls
+            walls &= walls ^ (walls >> 1); // Reduce consecutive walls to 1 wide walls
 
-            var end: u4 = 0;
             while (walls != 0) {
-                const start: u4 = @intCast(@ctz(walls));
+                const old_walls = walls;
                 walls &= walls - 1; // Clear lowest bit
+                // A mask of all the bits before the removed wall
+                const right_of_wall = (walls ^ old_walls) - 1;
 
                 // Each "segment" separated by a wall must have a multiple of 4 empty cells,
                 // as pieces can only be placed in one segment (each piece occupies 4 cells).
                 var empty_count: u16 = 0;
                 for (rows) |row| {
-                    const segment = ~row << (15 - start) >> (end -% start);
+                    // All of the other segments to the right are confirmed to have a
+                    // multiple of 4 empty cells, so it doesn't matter if we count them again.
+                    const segment = ~row & right_of_wall;
                     empty_count += @popCount(segment);
                 }
                 if (empty_count % 4 != 0) {
                     return false;
                 }
-                end = start;
             }
 
             return true;
