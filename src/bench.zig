@@ -10,6 +10,7 @@ const NN = root.neat.NN;
 const pc = root.pc;
 
 pub fn main() !void {
+    _ = std.os.windows.kernel32.SetConsoleOutputCP(65001);
     try pcBenchmark();
     try nnBenchmark();
 }

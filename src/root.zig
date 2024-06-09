@@ -27,7 +27,7 @@ pub const PiecePosition = packed struct {
     pub fn pack(piece: Piece, pos: Position) PiecePosition {
         return PiecePosition{
             .y = pos.y,
-            .x = @as(u4, @intCast(pos.x + x_offset)),
+            .x = @intCast(pos.x + x_offset),
             .facing = piece.facing,
         };
     }
@@ -78,10 +78,13 @@ pub fn PiecePosSet(comptime shape: [3]usize) type {
             const x = index % shape[0];
             const y = (index / shape[0]) % shape[1];
             const facing = index / (shape[0] * shape[1]);
-
+            const p = Piece{ .kind = piece, .facing = @enumFromInt(facing) };
             return .{
-                .piece = .{ .kind = piece, .facing = @enumFromInt(facing) },
-                .pos = .{ .x = @intCast(x), .y = @intCast(y) },
+                .piece = p,
+                .pos = .{
+                    .x = @as(i8, @intCast(x)) + p.minX(),
+                    .y = @as(i8, @intCast(y)) + p.minY(),
+                },
             };
         }
 

@@ -88,7 +88,7 @@ pub fn main() !void {
     defer _ = gpa.deinit();
 
     // Add 2 to create a 1-wide empty boarder on the left and right.
-    try nterm.init(allocator, FPS_TIMING_WINDOW, Player.DISPLAY_W + 2, Player.DISPLAY_H);
+    try nterm.init(allocator, std.io.getStdOut(), FPS_TIMING_WINDOW, Player.DISPLAY_W + 2, Player.DISPLAY_H);
     defer nterm.deinit();
 
     const settings = engine.GameSettings{
