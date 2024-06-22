@@ -12,11 +12,17 @@ pub fn build(b: *Build) void {
     }).module("engine");
     const nterm_module = engine_module.import_table.get("nterm").?;
 
+    const zmai_module = b.dependency("zmai", .{
+        .target = target,
+        .optimize = optimize,
+    }).module("zmai");
+
     // Expose the library root
     _ = b.addModule("bot", .{
         .root_source_file = lazyPath(b, "src/root.zig"),
         .imports = &.{
             .{ .name = "engine", .module = engine_module },
+            .{ .name = "zmai", .module = zmai_module },
         },
     });
 
@@ -26,11 +32,9 @@ pub fn build(b: *Build) void {
         .install_subdir = "NNs",
     });
 
-    buildExe(b, target, optimize, engine_module, nterm_module, install_NNs);
-
-    buildTests(b, engine_module, install_NNs);
-
-    buildBench(b, target, engine_module, install_NNs);
+    buildExe(b, target, optimize, engine_module, nterm_module, zmai_module, install_NNs);
+    buildTests(b, engine_module, zmai_module, install_NNs);
+    buildBench(b, target, engine_module, zmai_module, install_NNs);
 }
 
 fn buildExe(
@@ -39,6 +43,7 @@ fn buildExe(
     optimize: builtin.OptimizeMode,
     engine_module: *Build.Module,
     nterm_module: *Build.Module,
+    zmai_module: *Build.Module,
     install_NNs: *Build.Step.InstallDir,
 ) void {
     const train_exe = b.addExecutable(.{
@@ -49,6 +54,7 @@ fn buildExe(
     });
     train_exe.root_module.addImport("engine", engine_module);
     train_exe.root_module.addImport("nterm", nterm_module);
+    train_exe.root_module.addImport("zmai", zmai_module);
 
     b.installArtifact(train_exe);
 
@@ -63,11 +69,18 @@ fn buildExe(
     run_step.dependOn(&run_cmd.step);
 }
 
-fn buildTests(b: *Build, engine_module: *Build.Module, install_NNs: *Build.Step.InstallDir) void {
+fn buildTests(
+    b: *Build,
+    engine_module: *Build.Module,
+    zmai_module: *Build.Module,
+    install_NNs: *Build.Step.InstallDir,
+) void {
     const lib_tests = b.addTest(.{
         .root_source_file = lazyPath(b, "src/root.zig"),
     });
     lib_tests.root_module.addImport("engine", engine_module);
+    lib_tests.root_module.addImport("zmai", zmai_module);
+
     const run_lib_tests = b.addRunArtifact(lib_tests);
 
     const test_step = b.step("test", "Run library tests");
@@ -75,7 +88,13 @@ fn buildTests(b: *Build, engine_module: *Build.Module, install_NNs: *Build.Step.
     test_step.dependOn(&run_lib_tests.step);
 }
 
-fn buildBench(b: *Build, target: Build.ResolvedTarget, engine_module: *Build.Module, install_NNs: *Build.Step.InstallDir) void {
+fn buildBench(
+    b: *Build,
+    target: Build.ResolvedTarget,
+    engine_module: *Build.Module,
+    zmai_module: *Build.Module,
+    install_NNs: *Build.Step.InstallDir,
+) void {
     const bench_exe = b.addExecutable(.{
         .name = "Budget Tetris Bot Benchmarks",
         .root_source_file = lazyPath(b, "src/bench.zig"),
@@ -83,6 +102,7 @@ fn buildBench(b: *Build, target: Build.ResolvedTarget, engine_module: *Build.Mod
         .optimize = .ReleaseFast,
     });
     bench_exe.root_module.addImport("engine", engine_module);
+    bench_exe.root_module.addImport("zmai", zmai_module);
 
     b.installArtifact(bench_exe);
 

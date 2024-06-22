@@ -10,7 +10,7 @@ const Facing = engine.pieces.Facing;
 const Rotation = engine.kicks.Rotation;
 
 const root = @import("../root.zig");
-const NN = root.neat.NN;
+const NN = root.neat.NN(8, 2);
 const Placement = root.Placement;
 
 const Self = @This();
@@ -64,7 +64,13 @@ pub fn findMoves(self: *Self, game: GameState) Placement {
     var best_score = -std.math.inf(f32);
     var best_placement: Placement = undefined;
 
-    const output = self.network.predict(getFeatures(game.playfield, self.network.inputs_used, 0, 0, 0));
+    const output = self.network.predict(getFeaturesFull(
+        game.playfield,
+        self.network.inputs_used[0..5].*,
+        0,
+        0,
+        0,
+    ));
     // TODO: Cache
     // ulong hash = HashState(0, 0, 0);
     // if (!CachedStateValues.ContainsKey(hash))
@@ -218,7 +224,13 @@ fn search(self: *Self, game: GameState, depth: u32, cleared: u32, attack: f32, p
         // if (CachedStateValues.ContainsKey(hash))
         //     return CachedStateValues[hash];
 
-        const features = getFeatures(game.playfield, self.network.inputs_used, cleared, attack, prev_output[1]);
+        const features = getFeaturesFull(
+            game.playfield,
+            self.network.inputs_used[0..5].*,
+            attack,
+            cleared,
+            prev_output[1],
+        );
         const score = self.network.predict(features)[0];
         // TODO: Cache
         // CachedStateValues.Add(hash, score);
@@ -230,11 +242,11 @@ fn search(self: *Self, game: GameState, depth: u32, cleared: u32, attack: f32, p
     // if (CachedValues.ContainsKey(hash)) return CachedValues[hash];
 
     const discount = DISCOUNTS[self.current_depth - depth];
-    const output = self.network.predict(getFeatures(
+    const output = self.network.predict(getFeaturesFull(
         game.playfield,
-        self.network.inputs_used,
-        cleared,
+        self.network.inputs_used[0..5].*,
         attack,
+        cleared,
         prev_output[1],
     ));
     // Stop search here if the move is not good enough
@@ -365,8 +377,22 @@ fn search(self: *Self, game: GameState, depth: u32, cleared: u32, attack: f32, p
     return score;
 }
 
+pub fn getFeaturesFull(playfield: BoardMask, inputs_used: [5]bool, attack: f32, cleared: u32, intent: f32) [8]f32 {
+    const features = getFeatures(playfield, inputs_used);
+    return .{
+        features[0],
+        features[1],
+        features[2],
+        features[3],
+        features[4],
+        attack,
+        @floatFromInt(cleared),
+        intent,
+    };
+}
+
 // TODO: Optimise with SIMD
-fn getFeatures(playfield: BoardMask, inputs_used: [5]bool, cleared: u32, attack: f32, intent: f32) [8]f32 {
+pub fn getFeatures(playfield: BoardMask, inputs_used: [5]bool) [5]f32 {
     // Find highest block in each column
     // Heights start from 0
     var heights: [10]i32 = undefined;
@@ -467,7 +493,7 @@ fn getFeatures(playfield: BoardMask, inputs_used: [5]bool, cleared: u32, attack:
         break :blk @floatFromInt(col_trans);
     } else undefined;
 
-    return .{ std_h, caves, pillars, row_trans, col_trans, attack, @floatFromInt(cleared), intent };
+    return .{ std_h, caves, pillars, row_trans, col_trans };
 }
 
 test getFeatures {
@@ -483,16 +509,10 @@ test getFeatures {
             } ++ [_]u16{BoardMask.EMPTY_ROW} ** 34,
         },
         [_]bool{true} ** 5,
-        1,
-        2,
-        0.9,
     );
     try expect(features[0] == 11.7046995);
     try expect(features[1] == 10);
     try expect(features[2] == 47);
     try expect(features[3] == 14);
     try expect(features[4] == 22);
-    try expect(features[5] == 2);
-    try expect(features[6] == 1);
-    try expect(features[7] == 0.9);
 }

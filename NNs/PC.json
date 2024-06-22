@@ -1,0 +1,30 @@
+{
+    "options": {
+        "input_count": 5,
+        "output_count": 1,
+        "hidden_activation": "sigmoid",
+        "output_activation": "identity"
+    },
+    "genome": {
+        "genes": [
+            {
+                "input": 0,
+                "output": 6,
+                "weight": 1.2838337421417236,
+                "enabled": true
+            },
+            {
+                "input": 3,
+                "output": 6,
+                "weight": -2.399761915206909,
+                "enabled": true
+            },
+            {
+                "input": 4,
+                "output": 6,
+                "weight": -8.976490497589111e-1,
+                "enabled": true
+            }
+        ]
+    }
+}

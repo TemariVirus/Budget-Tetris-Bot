@@ -1,151 +1,150 @@
 {
-    "Name": "Qoshae",
-    "Played": true,
-    "Inputs": 8,
-    "Outputs": 2,
-    "Age": 0,
-    "Fitness": 1502,
-    "Mu": 0,
-    "Delta": 0,
-    "Connections": [
-        {
-            "Enabled": true,
-            "Input": 0,
-            "Output": 9,
-            "Weight": 0.08427669
-        },
-        {
-            "Enabled": false,
-            "Input": 0,
-            "Output": 10,
-            "Weight": 0.022411784
-        },
-        {
-            "Enabled": true,
-            "Input": 1,
-            "Output": 9,
-            "Weight": -0.44404
-        },
-        {
-            "Enabled": false,
-            "Input": 1,
-            "Output": 10,
-            "Weight": 0.36974198
-        },
-        {
-            "Enabled": false,
-            "Input": 2,
-            "Output": 9,
-            "Weight": 0.18379907
-        },
-        {
-            "Enabled": true,
-            "Input": 2,
-            "Output": 10,
-            "Weight": -0.016409364
-        },
-        {
-            "Enabled": true,
-            "Input": 3,
-            "Output": 9,
-            "Weight": -0.13107657
-        },
-        {
-            "Enabled": false,
-            "Input": 3,
-            "Output": 10,
-            "Weight": -0.0061266096
-        },
-        {
-            "Enabled": true,
-            "Input": 4,
-            "Output": 9,
-            "Weight": 0.17504741
-        },
-        {
-            "Enabled": true,
-            "Input": 4,
-            "Output": 10,
-            "Weight": 0.34203908
-        },
-        {
-            "Enabled": true,
-            "Input": 5,
-            "Output": 9,
-            "Weight": 0.3237899
-        },
-        {
-            "Enabled": false,
-            "Input": 5,
-            "Output": 10,
-            "Weight": 0.17102808
-        },
-        {
-            "Enabled": false,
-            "Input": 6,
-            "Output": 9,
-            "Weight": -0.01489948
-        },
-        {
-            "Enabled": false,
-            "Input": 6,
-            "Output": 10,
-            "Weight": 0.34541082
-        },
-        {
-            "Enabled": true,
-            "Input": 7,
-            "Output": 9,
-            "Weight": 0.3663907
-        },
-        {
-            "Enabled": false,
-            "Input": 7,
-            "Output": 10,
-            "Weight": -0.2466434
-        },
-        {
-            "Enabled": true,
-            "Input": 8,
-            "Output": 9,
-            "Weight": 0.20529766
-        },
-        {
-            "Enabled": true,
-            "Input": 8,
-            "Output": 10,
-            "Weight": -0.23046641
-        },
-        {
-            "Enabled": false,
-            "Input": 6,
-            "Output": 2,
-            "Weight": -0.34843957
-        },
-        {
-            "Enabled": true,
-            "Input": 5,
-            "Output": 0,
-            "Weight": 0.24080385
-        },
-        {
-            "Enabled": true,
-            "Input": 0,
-            "Output": 11,
-            "Weight": 0.021947732
-        },
-        {
-            "Enabled": true,
-            "Input": 11,
-            "Output": 10,
-            "Weight": 0.94311297
-        },
-        {
-            "Enabled": true,
-            "Input": 4,
-            "Output": 7,
-            "Weight": 0.30701625
-        }
-    ],
-    "Activations": [2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 1, 2]
+    "options": {
+        "input_count": 8,
+        "output_count": 2,
+        "hidden_activation": "relu",
+        "output_activation": "tanh"
+    },
+    "genome": {
+        "genes": [
+            {
+                "enabled": true,
+                "input": 0,
+                "output": 9,
+                "weight": 0.08427669
+            },
+            {
+                "enabled": false,
+                "input": 0,
+                "output": 10,
+                "weight": 0.022411784
+            },
+            {
+                "enabled": true,
+                "input": 1,
+                "output": 9,
+                "weight": -0.44404
+            },
+            {
+                "enabled": false,
+                "input": 1,
+                "output": 10,
+                "weight": 0.36974198
+            },
+            {
+                "enabled": false,
+                "input": 2,
+                "output": 9,
+                "weight": 0.18379907
+            },
+            {
+                "enabled": true,
+                "input": 2,
+                "output": 10,
+                "weight": -0.016409364
+            },
+            {
+                "enabled": true,
+                "input": 3,
+                "output": 9,
+                "weight": -0.13107657
+            },
+            {
+                "enabled": false,
+                "input": 3,
+                "output": 10,
+                "weight": -0.0061266096
+            },
+            {
+                "enabled": true,
+                "input": 4,
+                "output": 9,
+                "weight": 0.17504741
+            },
+            {
+                "enabled": true,
+                "input": 4,
+                "output": 10,
+                "weight": 0.34203908
+            },
+            {
+                "enabled": true,
+                "input": 5,
+                "output": 9,
+                "weight": 0.3237899
+            },
+            {
+                "enabled": false,
+                "input": 5,
+                "output": 10,
+                "weight": 0.17102808
+            },
+            {
+                "enabled": false,
+                "input": 6,
+                "output": 9,
+                "weight": -0.01489948
+            },
+            {
+                "enabled": false,
+                "input": 6,
+                "output": 10,
+                "weight": 0.34541082
+            },
+            {
+                "enabled": true,
+                "input": 7,
+                "output": 9,
+                "weight": 0.3663907
+            },
+            {
+                "enabled": false,
+                "input": 7,
+                "output": 10,
+                "weight": -0.2466434
+            },
+            {
+                "enabled": true,
+                "input": 8,
+                "output": 9,
+                "weight": 0.20529766
+            },
+            {
+                "enabled": true,
+                "input": 8,
+                "output": 10,
+                "weight": -0.23046641
+            },
+            {
+                "enabled": false,
+                "input": 6,
+                "output": 2,
+                "weight": -0.34843957
+            },
+            {
+                "enabled": true,
+                "input": 5,
+                "output": 0,
+                "weight": 0.24080385
+            },
+            {
+                "enabled": true,
+                "input": 0,
+                "output": 11,
+                "weight": 0.021947732
+            },
+            {
+                "enabled": true,
+                "input": 11,
+                "output": 10,
+                "weight": 0.94311297
+            },
+            {
+                "enabled": true,
+                "input": 4,
+                "output": 7,
+                "weight": 0.30701625
+            }
+        ]
+    }
 }

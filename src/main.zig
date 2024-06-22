@@ -1,5 +1,6 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const SolutionList = std.ArrayList([]Placement);
 const time = std.time;
 
 const engine = @import("engine");
@@ -13,12 +14,17 @@ const nterm = @import("nterm");
 const View = nterm.View;
 
 const root = @import("root.zig");
-const neat = root.neat;
+const Bot = root.neat.Bot;
+const NN = root.neat.NN(8, 2);
 const pc = root.pc;
+const PcNn = root.neat.NN(5, 1);
 const Placement = root.Placement;
 
-const FRAMERATE = 6;
-const FPS_TIMING_WINDOW = 12;
+/// Also used as the number of placements/s
+const FRAMERATE = 20;
+const FPS_TIMING_WINDOW = FRAMERATE * 2;
+/// The maximum number of perfect clears to calculate in advance.
+const MAX_PC_QUEUE = 16;
 
 // pub fn main() !void {
 //     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -26,7 +32,13 @@ const FPS_TIMING_WINDOW = 12;
 //     defer _ = gpa.deinit();
 
 //     // Add 2 to create a 1-wide empty boarder on the left and right.
-//     try nterm.init(allocator, FPS_TIMING_WINDOW, Player.DISPLAY_W + 2, Player.DISPLAY_H + 3);
+//     try nterm.init(
+//         allocator,
+//         std.io.getStdOut(),
+//         FPS_TIMING_WINDOW,
+//         Player.DISPLAY_W + 2,
+//         Player.DISPLAY_H + 3,
+//     );
 //     defer nterm.deinit();
 
 //     const settings = engine.GameSettings{
@@ -39,7 +51,14 @@ const FPS_TIMING_WINDOW = 12;
 //         .width = Player.DISPLAY_W,
 //         .height = Player.DISPLAY_H,
 //     };
-//     var player = Player.init("You", SevenBag.init(0), player_view, settings);
+//     var player = Player.init(
+//         "Bot",
+//         SevenBag.init(0),
+//         kicks.srsPlus,
+//         settings,
+//         player_view,
+//         playSfxDummy,
+//     );
 
 //     const bot_stats_view = View{
 //         .left = 1,
@@ -48,10 +67,10 @@ const FPS_TIMING_WINDOW = 12;
 //         .height = 3,
 //     };
 
-//     const nn = try neat.NN.load(allocator, "NNs/Qoshae.json");
+//     const nn = try NN.load(allocator, "NNs/Qoshae.json");
 //     defer nn.deinit(allocator);
 
-//     var bot = neat.Bot.init(nn, 0.5, player.settings.attack_table);
+//     var bot = Bot.init(nn, 0.5, player.settings.attack_table);
 
 //     var t = time.nanoTimestamp();
 //     while (true) {
@@ -71,7 +90,7 @@ const FPS_TIMING_WINDOW = 12;
 //         player.tick(dt, 0, &.{});
 //         t += dt;
 
-//         try player.draw();
+//         player.draw();
 //         nterm.render() catch |err| {
 //             if (err == error.NotInitialized) {
 //                 return;
@@ -82,13 +101,18 @@ const FPS_TIMING_WINDOW = 12;
 // }
 
 pub fn main() !void {
-    // All allocators appear to perform the same for `pc.findPc()`
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     const allocator = gpa.allocator();
     defer _ = gpa.deinit();
 
     // Add 2 to create a 1-wide empty boarder on the left and right.
-    try nterm.init(allocator, std.io.getStdOut(), FPS_TIMING_WINDOW, Player.DISPLAY_W + 2, Player.DISPLAY_H);
+    try nterm.init(
+        allocator,
+        std.io.getStdOut(),
+        FPS_TIMING_WINDOW,
+        Player.DISPLAY_W + 2,
+        Player.DISPLAY_H,
+    );
     defer nterm.deinit();
 
     const settings = engine.GameSettings{
@@ -102,7 +126,7 @@ pub fn main() !void {
         .height = Player.DISPLAY_H,
     };
     var player = Player.init(
-        "You",
+        "PC Solver",
         SevenBag.init(0),
         kicks.srsPlus,
         settings,
@@ -111,7 +135,7 @@ pub fn main() !void {
     );
 
     var placement_i: usize = 0;
-    var pc_queue = std.ArrayList([]Placement).init(allocator);
+    var pc_queue = SolutionList.init(allocator);
     defer pc_queue.deinit();
 
     const pc_thread = try std.Thread.spawn(.{
@@ -133,8 +157,10 @@ pub fn main() !void {
 
             placePcPiece(allocator, &player, &pc_queue, &placement_i);
             player.tick(dt, 0, &.{});
-            try player.draw();
+            player.draw();
             nterm.render() catch |err| {
+                // Trying to render after the terminal has been closed results
+                // in an error, in which case stop the program gracefully.
                 if (err == error.NotInitialized) {
                     return;
                 }
@@ -146,7 +172,12 @@ pub fn main() !void {
     }
 }
 
-fn placePcPiece(allocator: Allocator, game: *Player, queue: *std.ArrayList([]Placement), placement_i: *usize) void {
+fn placePcPiece(
+    allocator: Allocator,
+    game: *Player,
+    queue: *SolutionList,
+    placement_i: *usize,
+) void {
     if (queue.items.len == 0) {
         return;
     }
@@ -161,18 +192,28 @@ fn placePcPiece(allocator: Allocator, game: *Player, queue: *std.ArrayList([]Pla
     game.hardDrop(0, &.{});
     placement_i.* += 1;
 
+    // Start next perfect clear
     if (placement_i.* == placements.len) {
         allocator.free(queue.orderedRemove(0));
         placement_i.* = 0;
     }
 }
 
-fn pcThread(allocator: Allocator, state: GameState, queue: *std.ArrayList([]Placement)) !void {
+fn pcThread(allocator: Allocator, state: GameState, queue: *SolutionList) !void {
     var game = state;
 
+    const nn = try PcNn.load(allocator, "NNs/PC.json");
+    defer nn.deinit(allocator);
+
     while (true) {
-        const placements = try pc.findPc(allocator, game, 0, 16);
-        for (placements) |placement| {
+        while (queue.items.len >= MAX_PC_QUEUE) {
+            time.sleep(time.ns_per_ms);
+        }
+
+        // A 2- or 4-line PC is not always possible. 15 placements is enough
+        // for a 6-line PC.
+        const solution = try pc.findPc(allocator, game, nn, 0, 15);
+        for (solution) |placement| {
             if (game.current.kind != placement.piece.kind) {
                 game.hold();
             }
@@ -182,8 +223,9 @@ fn pcThread(allocator: Allocator, state: GameState, queue: *std.ArrayList([]Plac
             game.nextPiece();
         }
 
-        try queue.append(placements);
+        try queue.append(solution);
     }
 }
 
+/// Dummy function to satisfy the Player struct.
 fn playSfxDummy(_: engine.player.Sfx) void {}
