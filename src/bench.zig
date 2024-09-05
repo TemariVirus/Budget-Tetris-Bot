@@ -16,8 +16,8 @@ pub fn main() !void {
 }
 
 // Height: 4
-// Mean: 54.967ms
-// Max: 809.671ms
+// Mean: 48.848ms
+// Max: 712.664ms
 pub fn pcBenchmark(comptime height: u8) !void {
     const NN = root.neat.NN(5, 1);
     const RUN_COUNT = 100;

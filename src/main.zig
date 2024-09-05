@@ -11,6 +11,7 @@ const PeriodicTrigger = engine.PeriodicTrigger;
 const SevenBag = engine.bags.SevenBag;
 
 const nterm = @import("nterm");
+const Colors = nterm.Colors;
 const View = nterm.View;
 
 const root = @import("root.zig");
@@ -38,6 +39,8 @@ const MAX_PC_QUEUE = 16;
 //         FPS_TIMING_WINDOW,
 //         Player.DISPLAY_W + 2,
 //         Player.DISPLAY_H + 3,
+//         null,
+//         null,
 //     );
 //     defer nterm.deinit();
 
@@ -82,9 +85,9 @@ const MAX_PC_QUEUE = 16;
 //         player.state.current = placement.piece;
 //         player.hardDrop(0, &.{});
 
-//         bot_stats_view.printAt(0, 0, .white, .black, "Nodes: {d}", .{bot.node_count});
-//         bot_stats_view.printAt(0, 1, .white, .black, "Depth: {d}", .{bot.current_depth});
-//         bot_stats_view.printAt(0, 2, .white, .black, "Tresh: {d}", .{bot.move_tresh});
+//         bot_stats_view.printAt(0, 0, Colors.WHITE, null, "Nodes: {d}", .{bot.node_count});
+//         bot_stats_view.printAt(0, 1, Colors.WHITE, null, "Depth: {d}", .{bot.current_depth});
+//         bot_stats_view.printAt(0, 2, Colors.WHITE, null, "Tresh: {d}", .{bot.move_tresh});
 
 //         const dt: u64 = @intCast(time.nanoTimestamp() - t);
 //         player.tick(dt, 0, &.{});
@@ -112,6 +115,8 @@ pub fn main() !void {
         FPS_TIMING_WINDOW,
         Player.DISPLAY_W + 2,
         Player.DISPLAY_H,
+        null,
+        null,
     );
     defer nterm.deinit();
 
@@ -153,7 +158,7 @@ pub fn main() !void {
     var render_timer = PeriodicTrigger.init(time.ns_per_s / FRAMERATE);
     while (true) {
         if (render_timer.trigger()) |dt| {
-            fps_view.printAt(0, 0, .white, .black, "{d:.2}FPS", .{nterm.fps()});
+            fps_view.printAt(0, 0, Colors.WHITE, null, "{d:.2}FPS", .{nterm.fps()});
 
             placePcPiece(allocator, &player, &pc_queue, &placement_i);
             player.tick(dt, 0, &.{});
