@@ -7,11 +7,12 @@ const engine = @import("engine");
 const Player = engine.Player(SevenBag);
 const GameState = Player.GameState;
 const kicks = engine.kicks;
-const PeriodicTrigger = engine.PeriodicTrigger;
+const FPSQueue = engine.FPSQueue;
 const SevenBag = engine.bags.SevenBag;
 
 const nterm = @import("nterm");
 const Colors = nterm.Colors;
+const PeriodicTrigger = nterm.PeriodicTrigger;
 const View = nterm.View;
 
 const root = @import("root.zig");
@@ -36,7 +37,6 @@ const MAX_PC_QUEUE = 16;
 //     try nterm.init(
 //         allocator,
 //         std.io.getStdOut(),
-//         FPS_TIMING_WINDOW,
 //         Player.DISPLAY_W + 2,
 //         Player.DISPLAY_H + 3,
 //         null,
@@ -112,7 +112,6 @@ pub fn main() !void {
     try nterm.init(
         allocator,
         std.io.getStdOut(),
-        FPS_TIMING_WINDOW,
         Player.DISPLAY_W + 2,
         Player.DISPLAY_H,
         null,
@@ -154,11 +153,21 @@ pub fn main() !void {
         .width = 15,
         .height = 1,
     };
+    var fps_buffer: [FPS_TIMING_WINDOW]i64 = undefined;
+    var fps_queue = FPSQueue{ .data = &fps_buffer };
 
-    var render_timer = PeriodicTrigger.init(time.ns_per_s / FRAMERATE);
+    var render_timer = PeriodicTrigger.init(time.ns_per_s / FRAMERATE, true);
     while (true) {
         if (render_timer.trigger()) |dt| {
-            fps_view.printAt(0, 0, Colors.WHITE, null, "{d:.2}FPS", .{nterm.fps()});
+            fps_queue.nextFrame();
+            fps_view.printAt(
+                0,
+                0,
+                Colors.WHITE,
+                null,
+                "{d:.2}FPS",
+                .{fps_queue.fps()},
+            );
 
             placePcPiece(allocator, &player, &pc_queue, &placement_i);
             player.tick(dt, 0, &.{});
