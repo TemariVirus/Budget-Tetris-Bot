@@ -44,8 +44,10 @@ attack_table: AttackTable,
 start_time: i128 = undefined,
 end_search: bool = false,
 current_depth: u32 = 0,
+_current_depth: u32 = 0,
 max_depth: f32 = 0,
 node_count: u64 = 0,
+_node_count: u64 = 0,
 
 pub fn init(network: NN, think_seconds: f64, attack_table: AttackTable) Self {
     return .{
@@ -56,10 +58,13 @@ pub fn init(network: NN, think_seconds: f64, attack_table: AttackTable) Self {
 }
 
 pub fn findMoves(self: *Self, game: GameState) Placement {
+    defer self.current_depth = self._current_depth;
+    defer self.node_count = self._node_count;
+
     self.start_time = std.time.nanoTimestamp();
     self.end_search = false;
     self.max_depth = 0;
-    self.node_count = 0;
+    self._node_count = 0;
 
     var best_score = -std.math.inf(f32);
     var best_placement: Placement = undefined;
@@ -78,7 +83,7 @@ pub fn findMoves(self: *Self, game: GameState) Placement {
 
     // Iterative deepening
     outer: for (0..MAX_DEPTH) |depth| {
-        self.current_depth = @intCast(depth);
+        self._current_depth = @intCast(depth);
         for (0..2) |i| {
             var clone = game;
             if (i == 1) {
@@ -217,7 +222,7 @@ fn search(self: *Self, game: GameState, depth: u32, cleared: u32, attack: f32, p
 
     // Max depth reached; Stop search here
     if (depth == 0) {
-        self.node_count += 1;
+        self._node_count += 1;
 
         // TODO: Cache
         // ulong hash = HashState(cleared, attack, prev_output[1]);
@@ -241,7 +246,7 @@ fn search(self: *Self, game: GameState, depth: u32, cleared: u32, attack: f32, p
     // ulong hash = HashBoard(current, _hold, nexti, depth, cleared, attack, intent);
     // if (CachedValues.ContainsKey(hash)) return CachedValues[hash];
 
-    const discount = DISCOUNTS[self.current_depth - depth];
+    const discount = DISCOUNTS[self._current_depth - depth];
     const output = self.network.predict(getFeaturesFull(
         game.playfield,
         self.network.inputs_used[0..5].*,
