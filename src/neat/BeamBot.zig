@@ -97,6 +97,7 @@ pub fn findMoves(self: *Self, allocator: Allocator, game: GameState) !Placement 
 
         for (beams.items) |beam| {
             if (std.time.nanoTimestamp() - start_time > self.think_nanos) {
+                self._node_count += new_beams.items.len;
                 break :outer;
             }
 
@@ -166,10 +167,10 @@ fn searchBeam(self: Self, beam: Beam, depth: usize, beams: *std.ArrayList(Beam))
 }
 
 fn commitBeams(self: *Self, beams: *std.ArrayList(Beam), new_beams: *std.ArrayList(Beam)) void {
+    std.sort.pdq(Beam, new_beams.items, {}, Beam.greaterThan);
     const beam_count = @min(beams.capacity, new_beams.items.len);
     beams.items.len = beam_count;
-    @memcpy(beams.items[0..beam_count], new_beams.items[0..beam_count]);
-    std.sort.pdq(Beam, beams.items, {}, Beam.greaterThan);
+    @memcpy(beams.items, new_beams.items[0..beam_count]);
 
     self._node_count += new_beams.items.len;
     new_beams.clearRetainingCapacity();
